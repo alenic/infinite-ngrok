@@ -2,6 +2,8 @@ from discordwebhook import Discord
 import argparse
 import subprocess
 import time
+import json
+import os
 
 class InfiniteNgrok:
     def __init__(self, discord_webhook, seconds=1800, restart_ngrok=True):
@@ -18,7 +20,18 @@ class InfiniteNgrok:
             
             ngrok_info_proc = subprocess.Popen("curl -s localhost:4040/api/tunnels", shell=True, stdout=subprocess.PIPE)
             stdout = ngrok_info_proc.communicate()[0].decode("utf-8")
-            self.discord.post(content=stdout)
+            if len(stdout) > 0:
+                try:
+                    json_out = json.loads(comment)
+                    public_url = json_out["tunnels"]["public_url"]
+                    public_url, port = public_url.split(":")
+                    comment = f"ssh -o TCPKeepAlive=yes {os.getlogin()}@{public_url} -p {port}"
+                except:
+                    comment = "Error to load json"
+            else:
+                comment = ""
+
+            self.discord.post(content=comment)
 
             time.sleep(self.seconds)
             ngrok_info_proc.terminate()
