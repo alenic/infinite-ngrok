@@ -23,9 +23,13 @@ class InfiniteNgrok:
             if len(stdout) > 0:
                 try:
                     json_out = json.loads(stdout)
-                    public_url = json_out["tunnels"]["public_url"]
-                    public_url, port = public_url.split(":")
+                    public_url = json_out["tunnels"][0]["public_url"]
+                    print(public_url, public_url.split(":"))
+                    protocol, public_url, port = public_url.split(":")
+                    public_url = public_url[2:]
+                    print(public_url, os.getlogin(), port)
                     comment = f"ssh -o TCPKeepAlive=yes {os.getlogin()}@{public_url} -p {port}"
+                    print(comment)
                 except:
                     comment = "Error to load json"
             else:
