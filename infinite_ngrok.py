@@ -22,7 +22,7 @@ class InfiniteNgrok:
             stdout = ngrok_info_proc.communicate()[0].decode("utf-8")
             if len(stdout) > 0:
                 try:
-                    json_out = json.loads(comment)
+                    json_out = json.loads(stdout)
                     public_url = json_out["tunnels"]["public_url"]
                     public_url, port = public_url.split(":")
                     comment = f"ssh -o TCPKeepAlive=yes {os.getlogin()}@{public_url} -p {port}"
