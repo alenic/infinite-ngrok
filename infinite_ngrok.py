@@ -4,6 +4,13 @@ import subprocess
 import time
 import json
 import os
+import signal
+from pyngrok import ngrok
+
+with open("ngrok_token.txt", "r") as fp:
+    token = fp.readline()
+
+ngrok.set_auth_token(token)
 
 class InfiniteNgrok:
     def __init__(self, discord_webhook, seconds=1800, restart_ngrok=True):
@@ -13,11 +20,11 @@ class InfiniteNgrok:
         self.restart_ngrok = restart_ngrok
     
     def start(self):
+        
         while True:
             if self.restart_ngrok:
-                ngrok_proc = subprocess.Popen("ngrok tcp 22", shell=True)
-                time.sleep(5)
-            
+                ssh_tunnel = ngrok.connect(22, "tcp")
+
             ngrok_info_proc = subprocess.Popen("curl -s localhost:4040/api/tunnels", shell=True, stdout=subprocess.PIPE)
             stdout = ngrok_info_proc.communicate()[0].decode("utf-8")
             if len(stdout) > 0:
@@ -42,8 +49,8 @@ class InfiniteNgrok:
             ngrok_info_proc.wait()
 
             if self.restart_ngrok:
-                ngrok_proc.terminate()
-                ngrok_proc.wait()
+                ngrok.disconnect(ssh_tunnel.public_url)
+                time.sleep(5)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
